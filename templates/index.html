@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sentinel-2 NDVI Explorer | Tamil Space Tech</title>
+  <style>
+    :root { color-scheme: light; }
+    body { margin: 0; font-family: Arial, sans-serif; background: #f4f7fb; color: #172033; }
+    header { background: #12243a; color: white; padding: 24px 18px; text-align: center; }
+    header h1 { margin: 0 0 8px; font-size: 1.7rem; }
+    header p { margin: 0; color: #d7e2ef; }
+    main { max-width: 900px; margin: 24px auto; padding: 0 16px; }
+    .card { background: white; border-radius: 14px; padding: 22px; margin-bottom: 18px; box-shadow: 0 5px 20px rgba(20,40,70,.08); }
+    form { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; align-items: end; }
+    label { display: block; font-weight: 600; margin-bottom: 7px; }
+    input { box-sizing: border-box; width: 100%; padding: 11px; border: 1px solid #c9d3df; border-radius: 8px; font-size: 1rem; }
+    button { border: 0; border-radius: 8px; padding: 12px 16px; background: #176b87; color: white; font-weight: 700; font-size: 1rem; cursor: pointer; }
+    button:hover { background: #10566d; }
+    .error { background: #fff0f0; border-left: 4px solid #bd3434; padding: 12px; overflow-wrap: anywhere; }
+    .meta { color: #526174; font-size: .95rem; }
+    img { width: 100%; height: auto; display: block; border-radius: 8px; }
+    footer { text-align: center; color: #627086; padding: 12px 16px 28px; font-size: .9rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Sentinel-2 NDVI Explorer</h1>
+    <p>Explore vegetation patterns using Earth observation data</p>
+  </header>
+  <main>
+    <section class="card">
+      <h2>Choose your study area</h2>
+      <p class="meta">Enter a location and year. The app searches Sentinel-2 Level-2A imagery with scene cloud cover below 25%.</p>
+      <form method="POST">
+        <div>
+          <label for="lat">Latitude</label>
+          <input id="lat" name="lat" type="number" step="any" min="-90" max="90" value="{{ lat or 13.0674 }}" required>
+        </div>
+        <div>
+          <label for="lon">Longitude</label>
+          <input id="lon" name="lon" type="number" step="any" min="-180" max="180" value="{{ lon or 80.2376 }}" required>
+        </div>
+        <div>
+          <label for="year">Year</label>
+          <input id="year" name="year" type="number" min="2017" value="{{ year or 2025 }}" required>
+        </div>
+        <div>
+          <button type="submit">Generate NDVI Map</button>
+        </div>
+      </form>
+    </section>
+    {% if error_msg %}
+    <section class="card error">
+      <strong>Could not generate the map</strong>
+      <p>{{ error_msg }}</p>
+    </section>
+    {% endif %}
+    {% if image_data %}
+    <section class="card">
+      <h2>NDVI result</h2>
+      {% if captured %}<p class="meta">Image capture date: {{ captured }}</p>{% endif %}
+      <img src="data:image/png;base64,{{ image_data }}" alt="Sentinel-2 NDVI map">
+    </section>
+    {% endif %}
+  </main>
+  <footer>Built for learning and experimentation · Tamil Space Tech</footer>
+</body>
+</html>
