@@ -2,540 +2,112 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sentinel-2 NDVI Time-Series Explorer (2017–2026)</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            50: '#f0fdf4',
-                            100: '#dcfce7',
-                            500: '#22c55e',
-                            600: '#16a34a',
-                            700: '#15803d',
-                            900: '#14532d',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Sentinel-2 NDVI Time-Series Explorer</title>
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        
-        /* Custom Custom Slider styling for ultra-smooth UI */
-        .range-slider {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 100%;
-            height: 8px;
-            border-radius: 9999px;
-            background: #e2e8f0;
-            outline: none;
-            transition: background 0.3s ease;
-        }
-        .dark .range-slider {
-            background: #334155;
-        }
-        .range-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: #22c55e;
-            cursor: pointer;
-            box-shadow: 0 0 12px rgba(34, 197, 94, 0.6);
-            border: 3px solid #ffffff;
-            transition: all 0.15s ease-in-out;
-        }
-        .dark .range-slider::-webkit-slider-thumb {
-            border: 3px solid #0f172a;
-        }
-        .range-slider::-webkit-slider-thumb:hover {
-            transform: scale(1.15);
-            box-shadow: 0 0 18px rgba(34, 197, 94, 0.9);
-        }
-        .range-slider::-moz-range-thumb {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: #22c55e;
-            cursor: pointer;
-            box-shadow: 0 0 12px rgba(34, 197, 94, 0.6);
-            border: 3px solid #ffffff;
-            transition: all 0.15s ease-in-out;
-        }
-
-        /* Image Smooth Crossfade & Zoom */
-        .ndvi-image {
-            transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s ease;
-        }
-
-        /* Fullscreen modal style */
-        .fullscreen-container {
-            position: fixed;
-            inset: 0;
-            z-index: 50;
-            background: rgba(0, 0, 0, 0.9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-        }
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 30px; color: #333; }
+        .container { max-width: 650px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { color: #2c3e50; text-align: center; }
+        .form-group { display: grid; gap: 15px; margin-bottom: 25px; }
+        label { font-weight: bold; }
+        input { padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; }
+        button { background-color: #27ae60; color: white; border: none; padding: 12px; font-size: 16px; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #219653; }
+        .result { text-align: center; margin-top: 20px; display: none; }
+        .error { color: #c0392b; text-align: center; font-weight: bold; }
+        img { max-width: 100%; height: auto; border-radius: 4px; border: 1px solid #ddd; margin-top: 15px; }
+        .slider-container { margin-top: 20px; background: #fafafa; padding: 15px; border-radius: 6px; border: 1px solid #eee; }
+        .slider-container input { width: 100%; cursor: pointer; }
+        .year-display { font-size: 18px; font-weight: bold; color: #27ae60; margin-bottom: 10px; }
+        #loading { display: none; color: #e67e22; font-weight: bold; margin-top: 15px; text-align: center; }
     </style>
 </head>
-<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-200">
-
-    <!-- Top Navigation Header -->
-    <header class="border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur sticky top-0 z-30">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center text-white shadow-lg shadow-brand-500/20">
-                    <i class="fa-solid fa-earth-asia text-xl"></i>
-                </div>
-                <div>
-                    <h1 class="font-bold text-lg leading-tight">Sentinel-2 NDVI Explorer</h1>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">High-Resolution Vegetation Time-Series (2017–2026)</p>
-                </div>
+<body>
+    <div class="container">
+        <h2>Sentinel-2 NDVI Time-Series Explorer</h2>
+        <div class="form-group">
+            <div>
+                <label for="lat">Latitude:</label>
+                <input type="number" step="any" id="lat" value="{{ lat }}">
             </div>
-
-            <!-- Theme Toggle & Help -->
-            <div class="flex items-center space-x-3">
-                <button id="themeToggle" class="p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
-                    <i class="fa-solid fa-moon dark:hidden"></i>
-                    <i class="fa-solid fa-sun hidden dark:block text-amber-400"></i>
-                </button>
+            <div>
+                <label for="lon">Longitude:</label>
+                <input type="number" step="any" id="lon" value="{{ lon }}">
             </div>
-        </div>
-    </header>
-
-    <!-- Main Container -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
-        <!-- Top Configuration & Presets Panel -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            
-            <!-- Coordinates Form -->
-            <div class="lg:col-span-2 bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-sm">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-base font-semibold flex items-center gap-2">
-                        <i class="fa-solid fa-location-dot text-brand-500"></i> Target Location Coordinates
-                    </h2>
-                    <span class="text-xs px-2.5 py-1 rounded-full bg-brand-50 dark:bg-brand-950/50 text-brand-700 dark:text-brand-300 font-medium">
-                        Resolution: 10m
-                    </span>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Latitude</label>
-                        <div class="relative">
-                            <input type="number" step="any" id="lat" value="13.0674" class="w-full pl-3 pr-8 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 focus:ring-2 focus:ring-brand-500 outline-none text-sm font-medium transition">
-                            <i class="fa-solid fa-arrows-up-down absolute right-3 top-3.5 text-xs text-slate-400"></i>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Longitude</label>
-                        <div class="relative">
-                            <input type="number" step="any" id="lon" value="80.2376" class="w-full pl-3 pr-8 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 focus:ring-2 focus:ring-brand-500 outline-none text-sm font-medium transition">
-                            <i class="fa-solid fa-arrows-left-right absolute right-3 top-3.5 text-xs text-slate-400"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Submit Button -->
-                <button id="loadBtn" onclick="loadAllMaps()" class="w-full py-3 px-6 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold text-sm shadow-lg shadow-brand-600/30 hover:shadow-brand-500/40 active:scale-[0.99] transition flex items-center justify-center space-x-2">
-                    <i class="fa-solid fa-cloud-arrow-down"></i>
-                    <span>Load All Maps (2017 - 2026)</span>
-                </button>
-            </div>
-
-            <!-- Interesting Presets Quick-Select -->
-            <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-sm flex flex-col justify-between">
-                <div>
-                    <h2 class="text-base font-semibold flex items-center gap-2 mb-3">
-                        <i class="fa-solid fa-compass text-amber-500"></i> Location Presets
-                    </h2>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Click to populate coordinates with areas showing major urban and vegetation shifts:</p>
-                    
-                    <div class="space-y-2">
-                        <button onclick="setPreset(12.9716, 79.9456)" class="w-full text-left p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-brand-500 dark:hover:border-brand-500 bg-slate-50 dark:bg-slate-900/50 hover:bg-brand-50/50 dark:hover:bg-brand-950/20 transition flex items-center justify-between group">
-                            <div>
-                                <div class="text-xs font-semibold group-hover:text-brand-600 dark:group-hover:text-brand-400">Sriperumbudur Hub</div>
-                                <div class="text-[10px] text-slate-400">12.9716, 79.9456 • Industrial corridor</div>
-                            </div>
-                            <i class="fa-solid fa-chevron-right text-xs text-slate-400 group-hover:text-brand-500 transform group-hover:translate-x-0.5 transition"></i>
-                        </button>
-
-                        <button onclick="setPreset(13.0674, 80.2376)" class="w-full text-left p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-brand-500 dark:hover:border-brand-500 bg-slate-50 dark:bg-slate-900/50 hover:bg-brand-50/50 dark:hover:bg-brand-950/20 transition flex items-center justify-between group">
-                            <div>
-                                <div class="text-xs font-semibold group-hover:text-brand-600 dark:group-hover:text-brand-400">Chennai Core City</div>
-                                <div class="text-[10px] text-slate-400">13.0674, 80.2376 • Urban canopy & coastal</div>
-                            </div>
-                            <i class="fa-solid fa-chevron-right text-xs text-slate-400 group-hover:text-brand-500 transform group-hover:translate-x-0.5 transition"></i>
-                        </button>
-
-                        <button onclick="setPreset(16.5153, 80.5165)" class="w-full text-left p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-brand-500 dark:hover:border-brand-500 bg-slate-50 dark:bg-slate-900/50 hover:bg-brand-50/50 dark:hover:bg-brand-950/20 transition flex items-center justify-between group">
-                            <div>
-                                <div class="text-xs font-semibold group-hover:text-brand-600 dark:group-hover:text-brand-400">Amaravati Capital Zone</div>
-                                <div class="text-[10px] text-slate-400">16.5153, 80.5165 • Agricultural conversion</div>
-                            </div>
-                            <i class="fa-solid fa-chevron-right text-xs text-slate-400 group-hover:text-brand-500 transform group-hover:translate-x-0.5 transition"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
+            <button onclick="startExplorer()">Start Explorer (2017 - 2026)</button>
         </div>
 
-        <!-- Loading State Indicator -->
-        <div id="loadingSection" class="hidden mb-8 bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-sm text-center">
-            <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-brand-50 dark:bg-brand-950/50 text-brand-600 dark:text-brand-400 mb-3 animate-spin">
-                <i class="fa-solid fa-circle-notch text-xl"></i>
+        <p id="loading">Fetching satellite map from AWS cloud...</p>
+        <p id="errorMsg" class="error"></p>
+
+        <div id="result-section" class="result">
+            <div class="slider-container">
+                <div class="year-display">Year: <span id="year-label">2026</span></div>
+                <input type="range" id="yearSlider" min="2017" max="2026" step="1" value="2026">
             </div>
-            <h3 class="text-base font-semibold mb-1">Retrieving Satellite Time-Series...</h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Fetching Sentinel-2 bands in parallel from AWS STAC Archive for 2017 through 2026.</p>
-            
-            <div class="w-full bg-slate-100 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden max-w-md mx-auto">
-                <div id="progressBar" class="bg-gradient-to-r from-brand-600 to-emerald-400 h-full w-0 transition-all duration-300"></div>
-            </div>
+            <img id="ndviImage" src="" alt="NDVI Map">
         </div>
-
-        <!-- Error Container -->
-        <div id="errorSection" class="hidden mb-8 p-4 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-300 text-sm flex items-center gap-3">
-            <i class="fa-solid fa-triangle-exclamation text-lg text-red-500"></i>
-            <span id="errorMessage">An unexpected error occurred.</span>
-        </div>
-
-        <!-- Main Display / Viewport Section -->
-        <div id="displaySection" class="hidden space-y-6">
-            
-            <!-- Custom UI Range Slider Card -->
-            <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-sm">
-                
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center space-x-2">
-                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Timeline</span>
-                        <span id="currentYearBadge" class="text-lg font-bold text-brand-600 dark:text-brand-400 px-3 py-0.5 rounded-lg bg-brand-50 dark:bg-brand-950/60 border border-brand-200 dark:border-brand-800/60">
-                            2026
-                        </span>
-                    </div>
-
-                    <!-- Side-by-Side Comparison Toggle -->
-                    <button id="compareToggleBtn" onclick="toggleCompareMode()" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center space-x-2 transition">
-                        <i class="fa-solid fa-columns"></i>
-                        <span id="compareToggleText">Compare Mode</span>
-                    </button>
-                </div>
-
-                <!-- Custom Range Slider with Smooth Dragging -->
-                <div class="relative py-4 px-2">
-                    <input type="range" id="yearSlider" min="2017" max="2026" step="1" value="2026" class="range-slider">
-                    
-                    <!-- Tick Marks for 2017 to 2026 -->
-                    <div class="flex justify-between items-center mt-3 text-[11px] font-semibold text-slate-400 px-1">
-                        <span onclick="setYear(2017)" class="cursor-pointer hover:text-brand-500">2017</span>
-                        <span onclick="setYear(2018)" class="cursor-pointer hover:text-brand-500">2018</span>
-                        <span onclick="setYear(2019)" class="cursor-pointer hover:text-brand-500">2019</span>
-                        <span onclick="setYear(2020)" class="cursor-pointer hover:text-brand-500">2020</span>
-                        <span onclick="setYear(2021)" class="cursor-pointer hover:text-brand-500">2021</span>
-                        <span onclick="setYear(2022)" class="cursor-pointer hover:text-brand-500">2022</span>
-                        <span onclick="setYear(2023)" class="cursor-pointer hover:text-brand-500">2023</span>
-                        <span onclick="setYear(2024)" class="cursor-pointer hover:text-brand-500">2024</span>
-                        <span onclick="setYear(2025)" class="cursor-pointer hover:text-brand-500">2025</span>
-                        <span onclick="setYear(2026)" class="cursor-pointer hover:text-brand-500">2026</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Single Image View Canvas -->
-            <div id="singleView" class="bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-sm text-center relative overflow-hidden">
-                <div class="flex items-center justify-between mb-4 px-2">
-                    <div class="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                        <i class="fa-regular fa-calendar mr-1"></i> Image Date: <span id="captureDate" class="text-slate-800 dark:text-slate-200 font-bold">2026-10-11</span>
-                    </div>
-                    
-                    <!-- View Controls -->
-                    <div class="flex items-center space-x-2">
-                        <button onclick="zoomImage(1.1)" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-200 hover:bg-slate-200 transition text-xs">
-                            <i class="fa-solid fa-magnifying-glass-plus"></i>
-                        </button>
-                        <button onclick="zoomImage(0.9)" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-200 hover:bg-slate-200 transition text-xs">
-                            <i class="fa-solid fa-magnifying-glass-minus"></i>
-                        </button>
-                        <button onclick="resetZoom()" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-200 hover:bg-slate-200 transition text-xs">
-                            <i class="fa-solid fa-rotate-left"></i>
-                        </button>
-                        <button onclick="openFullscreen('primaryNdviImage')" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-200 hover:bg-slate-200 transition text-xs">
-                            <i class="fa-solid fa-expand"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Main Active Image -->
-                <div class="relative overflow-hidden rounded-xl bg-slate-900/5 dark:bg-slate-950 flex items-center justify-center min-h-[350px]">
-                    <img id="primaryNdviImage" src="" alt="NDVI Map" class="ndvi-image max-w-full h-auto max-h-[600px] object-contain rounded-lg shadow-inner">
-                </div>
-            </div>
-
-            <!-- Side-by-Side Comparison Container -->
-            <div id="compareView" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6">
-                
-                <!-- Left Reference Year -->
-                <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-sm text-center">
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="flex items-center space-x-2">
-                            <span class="text-xs font-semibold text-slate-400">Baseline Year</span>
-                            <select id="leftYearSelect" onchange="updateCompareView()" class="bg-slate-100 dark:bg-slate-700 text-xs font-bold px-2.5 py-1 rounded-lg border-none outline-none">
-                                <!-- Options dynamically generated -->
-                            </select>
-                        </div>
-                        <span id="leftCaptureDate" class="text-[11px] text-slate-400">Captured: -</span>
-                    </div>
-                    <div class="rounded-xl bg-slate-950 overflow-hidden flex items-center justify-center min-h-[280px]">
-                        <img id="leftNdviImage" src="" alt="Baseline NDVI" class="max-w-full h-auto max-h-[450px] object-contain">
-                    </div>
-                </div>
-
-                <!-- Right Comparison Year -->
-                <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-sm text-center">
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="flex items-center space-x-2">
-                            <span class="text-xs font-semibold text-slate-400">Target Year</span>
-                            <select id="rightYearSelect" onchange="updateCompareView()" class="bg-slate-100 dark:bg-slate-700 text-xs font-bold px-2.5 py-1 rounded-lg border-none outline-none">
-                                <!-- Options dynamically generated -->
-                            </select>
-                        </div>
-                        <span id="rightCaptureDate" class="text-[11px] text-slate-400">Captured: -</span>
-                    </div>
-                    <div class="rounded-xl bg-slate-950 overflow-hidden flex items-center justify-center min-h-[280px]">
-                        <img id="rightNdviImage" src="" alt="Target NDVI" class="max-w-full h-auto max-h-[450px] object-contain">
-                    </div>
-                </div>
-
-            </div>
-
-        </div>
-    </main>
-
-    <!-- Fullscreen Lightbox Modal -->
-    <div id="fullscreenModal" class="hidden fullscreen-container" onclick="closeFullscreen()">
-        <button class="absolute top-4 right-4 text-white hover:text-brand-400 text-2xl p-2">
-            <i class="fa-solid fa-xmark"></i>
-        </button>
-        <img id="fullscreenImage" src="" alt="Full Screen NDVI" class="max-w-full max-h-full rounded-lg shadow-2xl">
     </div>
 
-    <!-- Frontend Logic -->
     <script>
-        // State variables
         let cachedMaps = {};
-        let currentZoom = 1.0;
-        let isCompareMode = false;
 
-        // Theme Toggle Handler
-        const themeToggleBtn = document.getElementById('themeToggle');
-        themeToggleBtn.addEventListener('click', () => {
-            document.documentElement.classList.toggle('dark');
-        });
+        async function fetchYear(year) {
+            if (cachedMaps[year]) {
+                updateImageView(year, cachedMaps[year]);
+                return;
+            }
 
-        // Set Preset Coordinates
-        function setPreset(lat, lon) {
-            document.getElementById('lat').value = lat;
-            document.getElementById('lon').value = lon;
-        }
-
-        // Load All Satellite Maps (2017 to 2026)
-        async function loadAllMaps() {
             const lat = document.getElementById('lat').value;
             const lon = document.getElementById('lon').value;
-
-            // UI Elements
-            const loadingSection = document.getElementById('loadingSection');
-            const errorSection = document.getElementById('errorSection');
-            const displaySection = document.getElementById('displaySection');
-            const progressBar = document.getElementById('progressBar');
-
-            // Reset UI
-            loadingSection.classList.remove('hidden');
-            errorSection.classList.add('hidden');
-            displaySection.classList.add('hidden');
-            progressBar.style.width = '20%';
-
+            
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('errorMsg').innerText = '';
+            
             try {
-                // Progress bar animation step
-                let progress = 20;
-                const interval = setInterval(() => {
-                    if (progress < 85) {
-                        progress += 10;
-                        progressBar.style.width = `${progress}%`;
-                    }
-                }, 300);
-
-                const response = await fetch('/get_all_ndvi', {
+                let response = await fetch('/get_ndvi_year', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ lat: parseFloat(lat), lon: parseFloat(lon) })
+                    body: JSON.stringify({ lat: lat, lon: lon, year: year })
                 });
-
-                clearInterval(interval);
-                progressBar.style.width = '100%';
-
-                const data = await response.json();
                 
-                setTimeout(() => {
-                    loadingSection.classList.add('hidden');
-                }, 400);
-
+                let data = await response.json();
+                document.getElementById('loading').style.display = 'none';
+                
                 if (data.error) {
-                    showError(data.error);
+                    document.getElementById('errorMsg').innerText = data.error;
                 } else {
-                    cachedMaps = data.maps;
-                    populateCompareSelects();
-
-                    // Find latest available year or default to 2026
-                    let targetYear = 2026;
-                    if (!cachedMaps[targetYear]) {
-                        const years = Object.keys(cachedMaps).map(Number);
-                        targetYear = Math.max(...years);
-                    }
-
-                    document.getElementById('yearSlider').value = targetYear;
-                    updateImageView(targetYear);
-                    displaySection.classList.remove('hidden');
+                    cachedMaps[year] = data;
+                    updateImageView(year, data);
+                    document.getElementById('result-section').style.display = 'block';
                 }
             } catch (err) {
-                loadingSection.classList.add('hidden');
-                showError("Unable to connect to Flask endpoint '/get_all_ndvi'. Ensure your backend server is running.");
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('errorMsg').innerText = "Failed to connect to server.";
             }
         }
 
-        // Update single image view seamlessly
-        function updateImageView(year) {
-            const badge = document.getElementById('currentYearBadge');
-            const captureDate = document.getElementById('captureDate');
-            const imageEl = document.getElementById('primaryNdviImage');
-
-            badge.innerText = year;
-
-            if (cachedMaps[year]) {
-                captureDate.innerText = cachedMaps[year].date;
-                imageEl.style.opacity = '0.3';
-                setTimeout(() => {
-                    imageEl.src = cachedMaps[year].image;
-                    imageEl.style.opacity = '1';
-                }, 50);
-            } else {
-                captureDate.innerText = "No cloud-free imagery";
-                imageEl.src = "https://placehold.co/600x600/1e293b/94a3b8?text=No+Data+For+" + year;
-            }
+        function updateImageView(year, data) {
+            document.getElementById('year-label').innerText = `${year} (Captured: ${data.date})`;
+            document.getElementById('ndviImage').src = data.image;
         }
 
-        // Set slider year directly from tick mark click
-        function setYear(year) {
-            document.getElementById('yearSlider').value = year;
-            updateImageView(year);
+        function startExplorer() {
+            cachedMaps = {}; // Clear cache on new coordinates
+            document.getElementById('yearSlider.value = 2026;
+            fetchYear(2026);
         }
 
-        // Slider Event Listener for immediate smooth toggling
+        // Debounced slider handler to fetch data smoothly as user drags
+        let timeout = null;
         document.getElementById('yearSlider').addEventListener('input', function() {
-            updateImageView(this.value);
-        });
-
-        // Zoom & Pan controls
-        function zoomImage(factor) {
-            currentZoom *= factor;
-            currentZoom = Math.min(Math.max(0.5, currentZoom), 3.0);
-            document.getElementById('primaryNdviImage').style.transform = `scale(${currentZoom})`;
-        }
-
-        function resetZoom() {
-            currentZoom = 1.0;
-            document.getElementById('primaryNdviImage').style.transform = `scale(1.0)`;
-        }
-
-        // Fullscreen Lightbox
-        function openFullscreen(imgId) {
-            const src = document.getElementById(imgId).src;
-            if (!src) return;
-            document.getElementById('fullscreenImage').src = src;
-            document.getElementById('fullscreenModal').classList.remove('hidden');
-        }
-
-        function closeFullscreen() {
-            document.getElementById('fullscreenModal').classList.add('hidden');
-        }
-
-        // Side-by-Side Compare Mode Logic
-        function toggleCompareMode() {
-            isCompareMode = !isCompareMode;
-            const singleView = document.getElementById('singleView');
-            const compareView = document.getElementById('compareView');
-            const btnText = document.getElementById('compareToggleText');
-
-            if (isCompareMode) {
-                singleView.classList.add('hidden');
-                compareView.classList.remove('hidden');
-                btnText.innerText = "Single View";
-                updateCompareView();
-            } else {
-                compareView.classList.add('hidden');
-                singleView.classList.remove('hidden');
-                btnText.innerText = "Compare Mode";
-            }
-        }
-
-        function populateCompareSelects() {
-            const leftSelect = document.getElementById('leftYearSelect');
-            const rightSelect = document.getElementById('rightYearSelect');
+            let year = this.value;
+            document.getElementById('year-label').innerText = `${year} (Loading...)`;
             
-            leftSelect.innerHTML = '';
-            rightSelect.innerHTML = '';
-
-            const years = Object.keys(cachedMaps).map(Number).sort((a,b) => a - b);
-
-            years.forEach(year => {
-                leftSelect.add(new Option(year, year));
-                rightSelect.add(new Option(year, year));
-            });
-
-            if (years.length > 1) {
-                leftSelect.value = years[0];
-                rightSelect.value = years[years.length - 1];
-            }
-        }
-
-        function updateCompareView() {
-            const leftYear = document.getElementById('leftYearSelect').value;
-            const rightYear = document.getElementById('rightYearSelect').value;
-
-            if (cachedMaps[leftYear]) {
-                document.getElementById('leftNdviImage').src = cachedMaps[leftYear].image;
-                document.getElementById('leftCaptureDate').innerText = `Captured: ${cachedMaps[leftYear].date}`;
-            }
-
-            if (cachedMaps[rightYear]) {
-                document.getElementById('rightNdviImage').src = cachedMaps[rightYear].image;
-                document.getElementById('rightCaptureDate').innerText = `Captured: ${cachedMaps[rightYear].date}`;
-            }
-        }
-
-        function showError(msg) {
-            const errorSection = document.getElementById('errorSection');
-            document.getElementById('errorMessage').innerText = msg;
-            errorSection.classList.remove('hidden');
-        }
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                fetchYear(year);
+            }, 300);
+        });
     </script>
 </body>
 </html>
